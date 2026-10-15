@@ -332,9 +332,9 @@ export default function Leaderboard({
 
       {secureDevModule && !boardIsEmpty && (
         <p className="px-1 text-xs text-muted">
-          {secureDevModule.title} points and team totals land on the next
-          scoring sweep — about once a minute — so a solve or team change you
-          just made can take a moment to appear here.
+          {secureDevModule.title} points and team totals update as scoring
+          results are processed, so a solve or team change you just made can
+          take a moment to appear here.
         </p>
       )}
 
