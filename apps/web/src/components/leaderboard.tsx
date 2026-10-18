@@ -333,7 +333,7 @@ export default function Leaderboard({
       {secureDevModule && !boardIsEmpty && (
         <p className="px-1 text-xs text-muted">
           {secureDevModule.title} points and team totals reflect processed
-          scoring results. A solve or team change may not appear immediately.
+          scoring results within about 10 seconds of each scoring sweep.
         </p>
       )}
 
