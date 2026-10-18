@@ -24,6 +24,7 @@ import type { LeaderboardData } from "./types";
  * fetch bypasses Next.js's fetch cache, so this memo is the leaderboard's
  * remaining application-level cache. /profile and the module pages read their
  * own data and are unaffected.
+ *
  * FAIL OPEN, NEVER CACHE A FAILURE. A fold that throws is not stored: the
  * caller sees the error exactly as before, and the next request retries. A
  * Redis blip costs one slow page, never ten seconds of a frozen board.
@@ -69,7 +70,7 @@ type Clock = () => number;
 /** The production fold: the leaderboard source through every overlay stage. */
 const defaultFold: Fold = async ({ fresh = false } = {}) =>
   (await getLeaderboardSource())
-    .getLeaderboard({ fresh })
+    .getLeaderboard()
     .then(withModuleContributions)
     .then(withTeamStandings)
     .then(withModuleSeries)
