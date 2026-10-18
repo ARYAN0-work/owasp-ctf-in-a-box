@@ -558,7 +558,7 @@ describe("Leaderboard score-cadence note (#552)", () => {
     const html = renderToStaticMarkup(
       <Leaderboard data={board} viewerLogin={null} modules={MODULES} enabledApps={apps} />,
     );
-    expect(html).toMatch(/points and team totals reflect processed scoring results/i);
+    expect(html).toMatch(/points and team totals reflect processed scoring results within about 10 seconds of each scoring sweep/i);
   });
 
   it("names the Secure Development module by its organizer-configured title", () => {
@@ -567,7 +567,7 @@ describe("Leaderboard score-cadence note (#552)", () => {
     const html = renderToStaticMarkup(
       <Leaderboard data={board} viewerLogin={null} modules={renamed} enabledApps={apps} />,
     );
-    expect(html).toMatch(/points and team totals reflect processed scoring results/i);
+    expect(html).toMatch(/points and team totals reflect processed scoring results within about 10 seconds of each scoring sweep/i);
     expect(html).toContain("Patch Track points and team totals");
     expect(html).not.toContain("Secure Development points and team totals");
   });
