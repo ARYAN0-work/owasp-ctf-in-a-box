@@ -4,6 +4,7 @@ import { withModuleContributions } from "./module-contributions";
 import { withTeamStandings } from "./team-standings";
 import { withModuleSeries } from "./module-series";
 import { withHintPenalties } from "./hint-penalties";
+import { withScoreAdjustments } from "./score-adjustments";
 import { foldGeneration } from "./fold-cache";
 import type { LeaderboardData } from "./types";
 
@@ -58,8 +59,8 @@ type Clock = () => number;
 // marker is what reconciles them against the netted header. Running the
 // penalty fold earlier netted scorer points alone, which made hints free for
 // any row whose points arrive later — a classic- or quiz-only contestant, or
-// an upstash-path team. Same story in docs/architecture.md, step 9 of the
-// score data flow.
+// a team whose module points team standings folds in. Same story in
+// docs/architecture.md, step 9 of the score data flow.
 //
 // withModuleSeries runs after withTeamStandings because it needs the final
 // team rows — it charts a team's roster, and a team the standings stage has
@@ -74,7 +75,10 @@ const defaultFold: Fold = async ({ fresh = false } = {}) =>
     .then(withModuleContributions)
     .then(withTeamStandings)
     .then(withModuleSeries)
-    .then(withHintPenalties);
+    .then(withHintPenalties)
+    // The organizer's team adjustments, after the hint fold: both come off
+    // (or onto) the same final total. See score-adjustments.ts.
+    .then(withScoreAdjustments);
 
 // `gen` is the fold-cache generation the fold STARTED under (#553): the two
 // admin resets that lower scores bump it, and nothing stamped older is served

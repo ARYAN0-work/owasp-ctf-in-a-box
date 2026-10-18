@@ -3,6 +3,7 @@
 // both. Data (and auth) in, interactivity down.
 
 import type { Metadata } from "next";
+import { boardQr } from "@/lib/qr-code";
 import PreviewBanner from "@/components/preview-banner";
 import { headers } from "next/headers";
 import PageHeader from "@/components/page-header";
@@ -131,6 +132,7 @@ export default async function LeaderboardPage({
         eventLogo={images.logo ? { src: eventImageUrl("logo", images.logo), w: images.logo.w, h: images.logo.h } : null}
         scoringStartsAt={settings?.scoringStartsAt ?? null}
         scoringEndsAt={settings?.scoringEndsAt ?? null}
+        qr={boardQr(settings, process.env.BETTER_AUTH_URL)}
         sponsors={sponsors.map((s) => ({
           key: s.id,
           name: s.name,
@@ -177,14 +179,14 @@ export default async function LeaderboardPage({
               alt={`${event.name} logo`}
             />
           ) : (
-            // No uploaded logo: the default OWASP mark, the same one the
-            // landing page's hero falls back to.
+            // No uploaded logo: the project logo, the same one the landing
+            // page's hero falls back to.
             <Image
-              src="/owasp-logo.png"
-              alt="OWASP"
+              src="/logo.png"
+              alt="OWASP CTF in a Box"
               width={200}
-              height={69}
-              className="h-auto w-28 shrink-0 invert sm:w-36"
+              height={85}
+              className="h-auto w-28 shrink-0 sm:w-36"
             />
           )
         }

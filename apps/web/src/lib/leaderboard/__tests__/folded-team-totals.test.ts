@@ -27,12 +27,16 @@ const mocks = vi.hoisted(() => ({
   getClassicTotals: vi.fn(),
   getTeamClassicTotalsBatch: vi.fn(),
   listChallenges: vi.fn(),
+  listStories: vi.fn(),
   getAiTotals: vi.fn(),
   getTeamAiTotalsBatch: vi.fn(),
   listAiChallenges: vi.fn(),
   listTeams: vi.fn(),
   penalties: new Map<string, number>(),
+  adjustments: new Map<string, number>(),
 }));
+// #591: the organizer's team adjustments, folded last.
+vi.mock("@/lib/adjustments-store", () => ({ teamAdjustments: async () => mocks.adjustments }));
 
 vi.mock("../source", () => ({
   getLeaderboardSource: async () => ({ getLeaderboard: async () => mocks.board() }),
@@ -47,6 +51,7 @@ vi.mock("@/lib/classic-store", () => ({
   getClassicTotals: mocks.getClassicTotals,
   getTeamClassicTotalsBatch: mocks.getTeamClassicTotalsBatch,
   listChallenges: mocks.listChallenges,
+  listStories: mocks.listStories,
 }));
 vi.mock("@/lib/ai-store", () => ({
   getAiTotals: mocks.getAiTotals,
@@ -97,6 +102,7 @@ beforeEach(() => {
   resetFoldedLeaderboardCache();
   mocks.board = scorerBoard;
   mocks.penalties = new Map();
+  mocks.adjustments = new Map();
 
   mocks.getQuizTotals.mockResolvedValue(
     new Map([
@@ -127,6 +133,7 @@ beforeEach(() => {
   );
   mocks.listQuestions.mockResolvedValue(["q1", "q2", "q3", "q4", "q5"].map((id) => ({ id })));
   mocks.listChallenges.mockResolvedValue(["c1", "c2", "c3", "c4", "c5", "c6"].map((id) => ({ id })));
+  mocks.listStories.mockResolvedValue([]);
   mocks.listAiChallenges.mockResolvedValue(["a1", "a2", "a3"].map((id) => ({ id })));
 
   mocks.listTeams.mockResolvedValue([
@@ -152,6 +159,18 @@ describe("the production fold's team totals (issue #520)", () => {
     expect(byteMe.modules?.ai?.points).toBe(650);
     const chipSum = Object.values(byteMe.modules ?? {}).reduce((n, m) => n + (m?.points ?? 0), 0);
     expect(chipSum).toBe(byteMe.points);
+  });
+
+  // #591: the production fold applies the team adjustment after hint
+  // penalties: a hint spend and a penalty both come off the same total.
+  it("applies a team adjustment after the hint fold, and ranks on it", async () => {
+    mocks.penalties = new Map([["alice", 100]]);
+    mocks.adjustments = new Map([["byte-me", 500]]);
+    const out = await getFoldedLeaderboard();
+    const byteMe = out.teams.find((t) => t.slug === "byte-me")!;
+    expect(byteMe.points).toBe(58 + 275 + 1125 + 650 - 100 + 500);
+    expect(byteMe.adjustment).toBe(500);
+    expect(out.teams.map((t) => t.slug).slice(0, 2)).toEqual(["byte-me", "sd-heavy"]);
   });
 
   it("ranks the teams on the single-counted totals", async () => {

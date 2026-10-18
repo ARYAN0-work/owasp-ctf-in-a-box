@@ -124,7 +124,7 @@ import {
 export * from "@/components/admin-ai-model";
 export { AiChallengeForm } from "@/components/admin-ai-form";
 
-export type AdminAiControlsProps = {
+type AdminAiControlsProps = {
   /** Parent-wide "a settings POST is in flight" flag — shared with every
    *  other section's inputs, same as classic's cooldown field. */
   pending: boolean;
@@ -268,7 +268,7 @@ export default function AdminAiControls({
     <AdminNumberField
       id="ai-cooldown-sec"
       label={AI_COOLDOWN_LABEL}
-      help="Seconds a contestant must wait between graded flag submissions on the same challenge. 0 = no cooldown. Signed events from the external side are never rate-limited by this — there is no wrong answer to throttle."
+      help="Seconds a contestant must wait between graded flag submissions on the same challenge. 0 = no cooldown. Counted per contestant, not per team: each teammate has their own. Signed events from the external side are never rate-limited by this — there is no wrong answer to throttle."
       value={aiCooldownSecInput}
       placeholder={String(AI_COOLDOWN_SEC)}
       disabled={pending}

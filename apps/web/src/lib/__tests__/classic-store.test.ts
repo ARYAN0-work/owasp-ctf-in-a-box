@@ -568,6 +568,10 @@ describe("getSolveCounts", () => {
     ]);
     expect(pipelineCalls()[0]).toEqual([["HGETALL", "ctf:classic:solvecount"]]);
   });
+  it("throws on a failed read instead of reporting every count as zero", async () => {
+    mocks.upstashPipeline.mockResolvedValueOnce([{ error: "NOAUTH Authentication required." }]);
+    await expect(getSolveCounts()).rejects.toThrow(/NOAUTH/);
+  });
 });
 
 describe("getClassicTotals", () => {
@@ -605,7 +609,13 @@ describe("getTeamClassicTotalsBatch", () => {
       solves({ "chal-1": { points: 90, at: "2026-08-19T11:00:00.000Z" } }),
     ]);
     const [total] = await getTeamClassicTotalsBatch([["alice", "bob"]]);
-    expect(total).toEqual({ points: 50, solved: 1, lastAt: "2026-08-19T10:00:00.000Z", itemIds: ["chal-1"] });
+    expect(total).toEqual({
+      points: 50,
+      solved: 1,
+      lastAt: "2026-08-19T10:00:00.000Z",
+      itemIds: ["chal-1"],
+      itemPoints: { "chal-1": 50 },
+    });
   });
 
   it("issues ONE pipeline for the whole board and fetches a shared member once", async () => {
@@ -633,14 +643,36 @@ describe("getTeamClassicTotalsBatch", () => {
       ["bob", "carol"],
     ]);
     expect(totals).toEqual([
-      { points: 60, solved: 2, lastAt: "2026-08-19T10:00:00.000Z", itemIds: ["chal-1", "chal-2"] },
-      { points: 10, solved: 1, lastAt: "2026-08-19T09:00:00.000Z", itemIds: ["chal-2"] },
+      {
+        points: 60,
+        solved: 2,
+        lastAt: "2026-08-19T10:00:00.000Z",
+        itemIds: ["chal-1", "chal-2"],
+        itemPoints: { "chal-1": 50, "chal-2": 10 },
+      },
+      { points: 10, solved: 1, lastAt: "2026-08-19T09:00:00.000Z", itemIds: ["chal-2"], itemPoints: { "chal-2": 10 } },
     ]);
   });
 
   it("skips unparseable rows rather than throwing", async () => {
     mocks.upstashPipeline.mockResolvedValueOnce([{ result: ["chal-1", "not json"] }]);
-    expect(await getTeamClassicTotalsBatch([["alice"]])).toEqual([{ points: 0, solved: 0, lastAt: null, itemIds: [] }]);
+    expect(await getTeamClassicTotalsBatch([["alice"]])).toEqual([
+      { points: 0, solved: 0, lastAt: null, itemIds: [], itemPoints: {} },
+    ]);
+  });
+
+  // `upstashPipeline` reports a per-command failure as a VALUE, not a throw.
+  // Folding it as empty data would score the member as having solved nothing
+  // — a misleading team total that also re-locks story steps the member's
+  // solves had opened. The reply's error must reject the whole batch.
+  it("rejects on a failed member read instead of folding it as empty", async () => {
+    mocks.upstashPipeline.mockResolvedValueOnce([
+      solves({ "chal-1": { points: 50, at: "2026-08-19T10:00:00.000Z" } }),
+      { error: "NOAUTH Authentication required." },
+    ]);
+    await expect(getTeamClassicTotalsBatch([["alice"], ["bob"]])).rejects.toThrow(
+      "classic team solves read failed: NOAUTH Authentication required.",
+    );
   });
 
   it("costs no round trip at all when no team has a member", async () => {
@@ -782,7 +814,10 @@ describe("exportBundle", () => {
   it("returns the current board in the importable shape", async () => {
     seedFullBoard();
     const bundle = await exportBundle();
+    // Carries no files, so it keeps the version an older box can import.
     expect(bundle.version).toBe(2);
+    // Metadata only: bytes ride the event archive, or an opt-in panel export.
+    expect("attachmentFiles" in bundle).toBe(false);
     expect(bundle.stories).toEqual([]);
     expect(bundle.categories).toEqual(["Web", "Crypto"]);
     expect(bundle.challenges[0]).toEqual({
