@@ -52,14 +52,7 @@ afterEach(() => {
 });
 
 describe("lambdaSource.getLeaderboard", () => {
-  it("bypasses Next's fetch cache for fresh reads", async () => {
-    vi.stubEnv("LEADERBOARD_API_URL", "https://scorer.example");
-    const fetchMock = stubFetch(RESPONSE);
-    await lambdaSource.getLeaderboard({ fresh: true });
-    expect(fetchMock).toHaveBeenCalledWith("https://scorer.example/leaderboard", { cache: "no-store" });
-  });
-
-  it("bypasses Next's fetch cache for regular reads too", async () => {
+  it("bypasses Next's fetch cache for every read", async () => {
     vi.stubEnv("LEADERBOARD_API_URL", "https://scorer.example");
     const fetchMock = stubFetch(RESPONSE);
     await lambdaSource.getLeaderboard();
