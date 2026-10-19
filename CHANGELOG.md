@@ -10,6 +10,11 @@ repo-level — `apps/web/package.json` tracks the current tag; `scorer` and
 
 ### Changes
 
+- **Fixed: AWS deploy reads `SCORE_IMAGE` from the repo-root `.env` (#593).**
+  `--scorer-source` and non-empty exported `SCORE_IMAGE` take precedence.
+  An unset or empty exported value falls back to the file, as in `ctf-setup.sh`.
+  Stacks without Secure Development do not read the file; dry runs still make
+  no Docker, AWS or Terraform calls.
 - **Fixed: a failed classic progress read no longer looks like an empty
   record (#642).** `getViewerClassic` now checks the per-command errors
   `upstashPipeline` returns instead of parsing them as empty solve and
