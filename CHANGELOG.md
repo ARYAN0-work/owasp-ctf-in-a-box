@@ -1315,6 +1315,7 @@ with the reasoning; this is the index an upgrader reads first.
   create (`/api/*`, 100 requests per 10 s per IP, block 10 s, zone-level not
   account-level) and its verification; the pre-event checklist in
   `docs/operations.md` grows from three checks to four.
+
 - **Fixed: the leaderboard fold runs once per 10 s, not once per viewer
   (#444).** Composing the board — the scorer read, every module's points,
   team standings, the chart series and hint penalties — cost roughly 500
