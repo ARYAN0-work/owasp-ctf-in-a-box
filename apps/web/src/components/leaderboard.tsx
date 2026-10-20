@@ -336,8 +336,7 @@ export default function Leaderboard({
 
       {secureDevModule && !boardIsEmpty && (
         <p className="px-1 text-xs text-muted">
-          {secureDevModule.title} points and team totals may be cached for up to
-          10 seconds per application instance.
+          {secureDevModule.title} points and team totals can take up to about 10 seconds to show here after a scoring sweep, so a solve or team change you just made may take a moment to appear.
         </p>
       )}
       {/* Story-lock disclaimer — only while some row on the board still
