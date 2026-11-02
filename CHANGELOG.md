@@ -8,6 +8,16 @@ repo-level — `apps/web/package.json` tracks the current tag; `scorer` and
 
 ## Unreleased
 
+### Changes
+
+- **Fixed: individual leaderboard rows now include team-unlocked Jeopardy
+  story steps in their denominator (#689).** Reachability is now calculated
+  for existing leaderboard contestants even when they have no personal
+  Jeopardy solves, using their team's roster and shared unlock progress.
+  Solve-less teammates therefore see the same reachable challenge total as
+  their teammates, without changing points, rankings or leaderboard row
+  creation.
+
 ## v1.0.3 — 2026-10-25
 
 The second security patch on the v1.0.1 freeze, one day after the first: a
@@ -111,14 +121,6 @@ the probe-count fix (#643) ship inside it.
   leaderboard retains its 10-second fold memoization to avoid unnecessary
   recomputation. The Secure Development caption now says the board updates about
   every 10 seconds.
-
-- **Fixed: individual leaderboard rows now include team-unlocked Jeopardy
-  story steps in their denominator (#689).** Reachability is now calculated
-  for existing leaderboard contestants even when they have no personal
-  Jeopardy solves, using their team's roster and shared unlock progress.
-  Solve-less teammates therefore see the same reachable challenge total as
-  their teammates, without changing points, rankings or leaderboard row
-  creation.
 
 - **Fixed: the scorer's unreachable-target early-abort test no longer flakes
   under CPU load (#643).** `runExec` now also returns `spawned`, the number of
